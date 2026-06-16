@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>現場管理 | のんけん株式会社</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #252836;
+    --accent: #f5a623;
+    --accent2: #e8861a;
+    --text: #f0f0f0;
+    --text2: #9a9eb5;
+    --danger: #e05555;
+    --success: #4caf7d;
+    --border: #2e3147;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* ヘッダー */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-title { font-size: 17px; font-weight: 700; }
+  .header-title span { color: var(--accent); }
+  .header-date { font-size: 12px; color: var(--text2); }
+
+  /* ボトムナビ */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0 12px;
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-size: 11px;
+    cursor: pointer;
+    gap: 4px;
+    transition: color 0.2s;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-btn svg { width: 22px; height: 22px; }
+
+  /* ページ */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  /* カード */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* 今日の現場カード */
+  .today-site {
+    background: linear-gradient(135deg, #1e2235, #252836);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+  .today-label { font-size: 11px; color: var(--accent); font-weight: 700; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .today-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .today-sub { font-size: 13px; color: var(--text2); }
+  .today-empty { color: var(--text2); font-size: 14px; text-align: center; padding: 20px 0; }
+
+  /* ボタン */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn:active { opacity: 0.75; }
+  .btn-primary { background: var(--accent); color: #0f1117; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-full { width: 100%; justify-content: center; margin-top: 8px; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* 物件リスト */
+  .site-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .site-item:last-child { border-bottom: none; }
+  .site-item-name { font-weight: 600; font-size: 15px; }
+  .site-item-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .site-item-arrow { color: var(--text2); font-size: 18px; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--accent);
+    color: #0f1117;
+    margin-left: 8px;
+  }
+  .badge-grey { background: var(--surface2); color: var(--text2); }
+
+  /* カレンダー */
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cal-month { font-size: 18px; font-weight: 700; }
+  .cal-nav { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; color: var(--text); font-size: 16px; }
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+  .cal-dow {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text2);
+    padding: 4px 0;
+    font-weight: 600;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid transparent;
+    transition: background 0.15s;
+  }
+  .cal-day:active { background: var(--surface2); }
+  .cal-day.today { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .cal-day.has-event::after {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    position: absolute;
+    bottom: 3px;
+  }
+  .cal-day.other-month { color: var(--text2); opacity: 0.4; }
+
+  /* イベントリスト */
+  .event-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+  .event-item:last-child { border-bottom: none; }
+  .event-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: 4px; flex-shrink: 0; }
+  .event-content {}
+  .event-site { font-size: 12px; color: var(--accent); font-weight: 600; }
+  .event-title { font-size: 14px; font-weight: 600; margin: 2px 0; }
+  .event-date { font-size: 12px; color: var(--text2); }
+
+  /* 写真グリッド */
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .photo-thumb {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface2);
+    cursor: pointer;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-thumb-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text2);
+    font-size: 24px;
+  }
+  .photo-date-label {
+    font-size: 11px;
+    color: var(--text2);
+    font-weight: 600;
+    margin: 12px 0 6px;
+  }
+
+  /* フォーム */
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; color: var(--text2); font-weight: 600; margin-bottom: 6px; display: block; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-select option { background: var(--surface2); }
+
+  /* モーダル */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    padding: 20px 16px 40px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .modal-title { font-size: 17px; font-weight: 700; }
+  .modal-close {
+    background: var(--surface2);
+    border: none;
+    color: var(--text2);
+    font-size: 20px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* セクションタイトル */
+  .section-title {
+    font-size: 13px;
+    color: var(--text2);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    margin-top: 20px;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  /* 写真プレビュー（大） */
+  .photo-preview-area {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background: var(--surface2);
+    border-radius: var(--radius);
+    border: 2px dashed var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .photo-preview-area img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-preview-area .upload-hint { color: var(--text2); font-size: 13px; }
+
+  /* エクスポートボタン */
+  .export-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    cursor: pointer;
+    width: 100%;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .export-btn:active { border-color: var(--accent); }
+  .export-btn svg { color: var(--accent); }
+
+  /* 空状態 */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text2);
+  }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state .empty-text { font-size: 14px; }
+
+  /* トースト */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--success);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 300;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* 写真拡大モーダル */
+  .photo-viewer {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 400;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .photo-viewer.open { display: flex; }
+  .photo-viewer img { max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px; }
+  .photo-viewer-info { color: var(--text); padding: 16px; text-align: center; }
+  .photo-viewer-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: rgba(255,255,255,0.1);
+    border: none; color: #fff;
+    font-size: 24px; width: 40px; height: 40px;
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .text-accent { color: var(--accent); }
+  .text-sm { font-size: 12px; color: var(--text2); }
+  .flex-row { display: flex; gap: 8px; }
+  .flex-row .btn { flex: 1; }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="header">
+  <div>
+    <div class="header-title">現場管理 <span>のんけん</span></div>
+    <div class="header-date" id="headerDate"></div>
+  </div>
+  <button class="btn btn-primary btn-sm" onclick="openAddPhotoModal()">📷 記録</button>
+</div>
+
+<!-- ページ: ホーム -->
+<div class="page active" id="page-home">
+  <div class="section-title">📍 今日の現場</div>
+  <div id="todaySiteCard"></div>
+
+  <div class="section-title">📅 直近の工程</div>
+  <div class="card">
+    <div id="recentEvents"></div>
+  </div>
+
+  <div class="section-title">📸 最新写真</div>
+  <div id="recentPhotos" class="photo-grid"></div>
+</div>
+
+<!-- ページ: カレンダー -->
+<div class="page" id="page-calendar">
+  <div class="cal-header">
+    <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+    <div class="cal-month" id="calMonthLabel"></div>
+    <button class="cal-nav" onclick="changeMonth(1)">›</button>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+  <div class="divider"></div>
+  <div id="calEventList"></div>
+  <button class="btn btn-primary btn-full" onclick="openAddEventModal()">＋ 工程を追加</button>
+</div>
+
+<!-- ページ: 物件 -->
+<div class="page" id="page-sites">
+  <div class="card">
+    <div id="siteList"></div>
+  </div>
+  <button class="btn btn-primary btn-full" onclick="openAddSiteModal()">＋ 物件を追加</button>
+</div>
+
+<!-- ページ: 写真 -->
+<div class="page" id="page-photos">
+  <div class="form-group">
+    <select class="form-select" id="photoFilterSite" onchange="renderPhotosPage()">
+      <option value="">すべての物件</option>
+    </select>
+  </div>
+  <div id="photoListArea"></div>
+  <button class="btn btn-primary btn-full" onclick="openAddPhotoModal()">📷 写真を追加</button>
+</div>
+
+<!-- ページ: 設定 -->
+<div class="page" id="page-settings">
+  <div class="section-title">データ管理</div>
+  <button class="export-btn" onclick="exportAllData()">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    全データをZIPでエクスポート
+  </button>
+  <button class="export-btn" onclick="exportPhotosOnly()">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+    写真だけエクスポート
+  </button>
+
+  <div class="divider"></div>
+  <div class="section-title">データ削除（注意）</div>
+  <button class="btn btn-danger btn-full" onclick="clearAllData()">⚠ 全データを削除する</button>
+  <p class="text-sm" style="text-align:center;margin-top:8px;">削除前にエクスポートしてください</p>
+
+  <div class="divider"></div>
+  <div class="section-title">バージョン情報</div>
+  <div class="card">
+    <div style="font-size:13px;color:var(--text2)">現場管理アプリ v1.0<br>のんけん株式会社</div>
+  </div>
+</div>
+
+<!-- ボトムナビ -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showPage('home',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    ホーム
+  </button>
+  <button class="nav-btn" onclick="showPage('calendar',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    工程
+  </button>
+  <button class="nav-btn" onclick="showPage('sites',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    物件
+  </button>
+  <button class="nav-btn" onclick="showPage('photos',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    写真
+  </button>
+  <button class="nav-btn" onclick="showPage('settings',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    設定
+  </button>
+</div>
+
+<!-- モーダル: 物件追加 -->
+<div class="modal-overlay" id="modalSite">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">物件を追加</div>
+      <button class="modal-close" onclick="closeModal('modalSite')">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">物件名 *</label>
+      <input class="form-input" id="siteName" placeholder="例：MONCLER金沢" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">住所・場所</label>
+      <input class="form-input" id="siteAddress" placeholder="例：金沢市香林坊" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">元請け会社</label>
+      <input class="form-input" id="siteClient" placeholder="例：野村不動産" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">ステータス</label>
+      <select class="form-select" id="siteStatus">
+        <option value="active">進行中</option>
+        <option value="done">完了</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ</label>
+      <textarea class="form-textarea" id="siteMemo" placeholder="備考など"></textarea>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveSite()">保存する</button>
+  </div>
+</div>
+
+<!-- モーダル: 工程追加 -->
+<div class="modal-overlay" id="modalEvent">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">工程を追加</div>
+      <button class="modal-close" onclick="closeModal('modalEvent')">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">物件 *</label>
+      <select class="form-select" id="eventSite">
+        <option value="">選択してください</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">作業内容 *</label>
+      <input class="form-input" id="eventTitle" placeholder="例：照明器具取付" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">開始日 *</label>
+      <input class="form-input" type="date" id="eventStart" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">終了日</label>
+      <input class="form-input" type="date" id="eventEnd" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ</label>
+      <textarea class="form-textarea" id="eventMemo" placeholder="作業メモ・備考"></textarea>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveEvent()">保存する</button>
+  </div>
+</div>
+
+<!-- モーダル: 写真追加 -->
+<div class="modal-overlay" id="modalPhoto">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📷 写真を記録</div>
+      <button class="modal-close" onclick="closeModal('modalPhoto')">×</button>
+    </div>
+    <div class="form-group">
+      <div class="photo-preview-area" id="photoPreviewArea" onclick="document.getElementById('photoInput').click()">
+        <div style="font-size:36px">📷</div>
+        <div class="upload-hint">タップして写真を選択・撮影</div>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoSelect(this)" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">物件 *</label>
+      <select class="form-select" id="photoSite">
+        <option value="">選択してください</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">日付 *</label>
+      <input class="form-input" type="date" id="photoDate" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">作業内容</label>
+      <input class="form-input" id="photoTitle" placeholder="例：TDL2 東側取付完了" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ</label>
+      <textarea class="form-textarea" id="photoMemo" placeholder="状況・備考など"></textarea>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="savePhoto()">保存する</button>
+  </div>
+</div>
+
+<!-- 写真拡大ビューア -->
+<div class="photo-viewer" id="photoViewer">
+  <button class="photo-viewer-close" onclick="closePhotoViewer()">×</button>
+  <img id="viewerImg" src="" alt="">
+  <div class="photo-viewer-info">
+    <div id="viewerTitle" style="font-weight:700;font-size:16px;margin-bottom:4px;"></div>
+    <div id="viewerSub" style="color:#9a9eb5;font-size:13px;"></div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-danger btn-sm" onclick="deleteCurrentPhoto()">削除</button>
+    </div>
+  </div>
+</div>
+
+<!-- トースト -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+// ========== DB ==========
+let db;
+const DB_NAME = 'GenbaDB';
+const DB_VER = 1;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('sites')) d.createObjectStore('sites', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('events')) {
+        const es = d.createObjectStore('events', { keyPath: 'id' });
+        es.createIndex('date', 'startDate');
+      }
+      if (!d.objectStoreNames.contains('photos')) {
+        const ps = d.createObjectStore('photos', { keyPath: 'id' });
+        ps.createIndex('date', 'date');
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = e => reject(e);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = reject;
+  });
+}
+
+function dbPut(store, data) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(data);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = reject;
+  });
+}
+
+function dbDelete(store, id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = reject;
+  });
+}
+
+function dbClear(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).clear();
+    req.onsuccess = () => resolve();
+    req.onerror = reject;
+  });
+}
+
+// ========== STATE ==========
+let sites = [], events = [], photos = [];
+let calYear, calMonth;
+let selectedPhotoData = null;
+let viewerPhotoId = null;
+
+// ========== INIT ==========
+async function init() {
+  await openDB();
+  sites = await dbGetAll('sites');
+  events = await dbGetAll('events');
+  photos = await dbGetAll('photos');
+
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  const d = now;
+  document.getElementById('headerDate').textContent =
+    `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})`;
+
+  // 今日の日付をデフォルト設定
+  const todayStr = toDateStr(now);
+  document.getElementById('eventStart').value = todayStr;
+  document.getElementById('photoDate').value = todayStr;
+
+  renderHome();
+  renderCalendar();
+  renderSites();
+  renderPhotosPage();
+}
+
+function toDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatDate(str) {
+  if (!str) return '';
+  const [y, m, d] = str.split('-');
+  return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+}
+
+// ========== NAVIGATE ==========
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'home') renderHome();
+  if (name === 'calendar') renderCalendar();
+  if (name === 'sites') renderSites();
+  if (name === 'photos') renderPhotosPage();
+}
+
+// ========== HOME ==========
+function renderHome() {
+  const today = toDateStr(new Date());
+
+  // 今日の現場
+  const todayEvents = events.filter(e => e.startDate <= today && (!e.endDate || e.endDate >= today));
+  const el = document.getElementById('todaySiteCard');
+  if (todayEvents.length === 0) {
+    el.innerHTML = `<div class="today-site"><div class="today-empty">今日の予定はありません</div></div>`;
+  } else {
+    el.innerHTML = todayEvents.map(ev => {
+      const site = sites.find(s => s.id === ev.siteId);
+      return `<div class="today-site">
+        <div class="today-label">📍 TODAY</div>
+        <div class="today-name">${ev.title}</div>
+        <div class="today-sub">${site ? site.name : ''}${ev.memo ? ' • ' + ev.memo : ''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // 直近イベント
+  const upcoming = [...events]
+    .filter(e => e.startDate >= today)
+    .sort((a,b) => a.startDate.localeCompare(b.startDate))
+    .slice(0, 5);
+  const recentEl = document.getElementById('recentEvents');
+  if (upcoming.length === 0) {
+    recentEl.innerHTML = `<div class="empty-state"><div class="empty-text">工程が登録されていません</div></div>`;
+  } else {
+    recentEl.innerHTML = upcoming.map(ev => {
+      const site = sites.find(s => s.id === ev.siteId);
+      return `<div class="event-item">
+        <div class="event-dot"></div>
+        <div class="event-content">
+          <div class="event-site">${site ? site.name : ''}</div>
+          <div class="event-title">${ev.title}</div>
+          <div class="event-date">${formatDate(ev.startDate)}${ev.endDate && ev.endDate !== ev.startDate ? ' 〜 ' + formatDate(ev.endDate) : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // 最新写真（6枚）
+  const recent6 = [...photos].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 6);
+  const photoEl = document.getElementById('recentPhotos');
+  if (recent6.length === 0) {
+    photoEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text2);font-size:13px;">写真がありません</div>`;
+  } else {
+    photoEl.innerHTML = recent6.map(p =>
+      `<div class="photo-thumb" onclick="openPhotoViewer('${p.id}')">
+        <img src="${p.dataUrl}" alt="${p.title || ''}">
+      </div>`
+    ).join('');
+  }
+}
+
+// ========== CALENDAR ==========
+function renderCalendar() {
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  document.getElementById('calMonthLabel').textContent = `${calYear}年 ${monthNames[calMonth]}`;
+
+  const grid = document.getElementById('calGrid');
+  const dows = ['日','月','火','水','木','金','土'];
+  let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+  const first = new Date(calYear, calMonth, 1);
+  const last = new Date(calYear, calMonth + 1, 0);
+  const startDow = first.getDay();
+  const today = toDateStr(new Date());
+
+  // 前月の空白
+  for (let i = 0; i < startDow; i++) {
+    const prevDate = new Date(calYear, calMonth, -startDow + i + 1);
+    html += `<div class="cal-day other-month">${prevDate.getDate()}</div>`;
+  }
+
+  for (let d = 1; d <= last.getDate(); d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasEv = events.some(e => e.startDate <= dateStr && (!e.endDate || e.endDate >= dateStr));
+    const isToday = dateStr === today;
+    html += `<div class="cal-day${isToday?' today':''}${hasEv?' has-event':''}" onclick="selectCalDay('${dateStr}')">${d}</div>`;
+  }
+
+  grid.innerHTML = html;
+  renderCalEventList(toDateStr(new Date()));
+}
+
+function renderCalEventList(dateStr) {
+  const dayEvents = events.filter(e => e.startDate <= dateStr && (!e.endDate || e.endDate >= dateStr));
+  const el = document.getElementById('calEventList');
+  const label = formatDate(dateStr);
+
+  if (dayEvents.length === 0) {
+    el.innerHTML = `<div class="card-title">${label}</div><div class="empty-state"><div class="empty-text">この日の工程はありません</div></div>`;
+  } else {
+    el.innerHTML = `<div class="card-title">${label}</div>` + dayEvents.map(ev => {
+      const site = sites.find(s => s.id === ev.siteId);
+      return `<div class="event-item">
+        <div class="event-dot"></div>
+        <div class="event-content" style="flex:1">
+          <div class="event-site">${site ? site.name : ''}</div>
+          <div class="event-title">${ev.title}</div>
+          ${ev.memo ? `<div class="event-date">${ev.memo}</div>` : ''}
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="deleteEvent('${ev.id}')">削除</button>
+      </div>`;
+    }).join('');
+  }
+}
+
+function selectCalDay(dateStr) {
+  renderCalEventList(dateStr);
+  document.getElementById('eventStart').value = dateStr;
+}
+
+function changeMonth(delta) {
+  calMonth += delta;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+// ========== SITES ==========
+function renderSites() {
+  const el = document.getElementById('siteList');
+  if (sites.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🏗</div><div class="empty-text">物件が登録されていません</div></div>`;
+    return;
+  }
+  el.innerHTML = sites.map(s => {
+    const evCount = events.filter(e => e.siteId === s.id).length;
+    const phCount = photos.filter(p => p.siteId === s.id).length;
+    const statusBadge = s.status === 'done' ? '<span class="badge badge-grey">完了</span>' : '<span class="badge">進行中</span>';
+    return `<div class="site-item" onclick="showSiteDetail('${s.id}')">
+      <div>
+        <div class="site-item-name">${s.name}${statusBadge}</div>
+        <div class="site-item-sub">${s.address || ''} ${s.client ? '| ' + s.client : ''}</div>
+        <div class="site-item-sub" style="margin-top:4px">工程 ${evCount}件 / 写真 ${phCount}枚</div>
+      </div>
+      <div class="site-item-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+function showSiteDetail(siteId) {
+  const site = sites.find(s => s.id === siteId);
+  if (!site) return;
+  showToast(`📍 ${site.name}`);
+}
+
+// ========== PHOTOS ==========
+function renderPhotosPage() {
+  const filterSiteId = document.getElementById('photoFilterSite').value;
+  const select = document.getElementById('photoFilterSite');
+  // セレクトを更新
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">すべての物件</option>' +
+    sites.map(s => `<option value="${s.id}"${s.id === currentVal ? ' selected' : ''}>${s.name}</option>`).join('');
+
+  let filtered = [...photos];
+  if (filterSiteId) filtered = filtered.filter(p => p.siteId === filterSiteId);
+  filtered.sort((a,b) => b.date.localeCompare(a.date));
+
+  const el = document.getElementById('photoListArea');
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📸</div><div class="empty-text">写真がありません</div></div>`;
+    return;
+  }
+
+  // 日付でグループ化
+  const groups = {};
+  filtered.forEach(p => {
+    if (!groups[p.date]) groups[p.date] = [];
+    groups[p.date].push(p);
+  });
+
+  el.innerHTML = Object.entries(groups).map(([date, ps]) =>
+    `<div class="photo-date-label">${formatDate(date)}</div>
+    <div class="photo-grid">
+      ${ps.map(p => `<div class="photo-thumb" onclick="openPhotoViewer('${p.id}')">
+        <img src="${p.dataUrl}" alt="${p.title || ''}">
+      </div>`).join('')}
+    </div>`
+  ).join('');
+}
+
+// ========== MODALS ==========
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'modalPhoto') {
+    selectedPhotoData = null;
+    document.getElementById('photoPreviewArea').innerHTML = `<div style="font-size:36px">📷</div><div class="upload-hint">タップして写真を選択・撮影</div>`;
+  }
+}
+
+function openAddSiteModal() {
+  document.getElementById('siteName').value = '';
+  document.getElementById('siteAddress').value = '';
+  document.getElementById('siteClient').value = '';
+  document.getElementById('siteMemo').value = '';
+  openModal('modalSite');
+}
+
+function openAddEventModal() {
+  // 物件セレクトを更新
+  const sel = document.getElementById('eventSite');
+  sel.innerHTML = '<option value="">選択してください</option>' +
+    sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('eventTitle').value = '';
+  document.getElementById('eventMemo').value = '';
+  openModal('modalEvent');
+}
+
+function openAddPhotoModal() {
+  const sel = document.getElementById('photoSite');
+  sel.innerHTML = '<option value="">選択してください</option>' +
+    sites.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('photoTitle').value = '';
+  document.getElementById('photoMemo').value = '';
+  document.getElementById('photoDate').value = toDateStr(new Date());
+  openModal('modalPhoto');
+}
+
+// ========== SAVE ==========
+async function saveSite() {
+  const name = document.getElementById('siteName').value.trim();
+  if (!name) { showToast('物件名を入力してください', true); return; }
+  const site = {
+    id: Date.now().toString(),
+    name,
+    address: document.getElementById('siteAddress').value.trim(),
+    client: document.getElementById('siteClient').value.trim(),
+    status: document.getElementById('siteStatus').value,
+    memo: document.getElementById('siteMemo').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+  await dbPut('sites', site);
+  sites = await dbGetAll('sites');
+  closeModal('modalSite');
+  renderSites();
+  showToast('物件を追加しました✅');
+}
+
+async function saveEvent() {
+  const siteId = document.getElementById('eventSite').value;
+  const title = document.getElementById('eventTitle').value.trim();
+  const startDate = document.getElementById('eventStart').value;
+  if (!siteId || !title || !startDate) { showToast('必須項目を入力してください', true); return; }
+  const ev = {
+    id: Date.now().toString(),
+    siteId,
+    title,
+    startDate,
+    endDate: document.getElementById('eventEnd').value || startDate,
+    memo: document.getElementById('eventMemo').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+  await dbPut('events', ev);
+  events = await dbGetAll('events');
+  closeModal('modalEvent');
+  renderCalendar();
+  renderHome();
+  showToast('工程を追加しました✅');
+}
+
+function handlePhotoSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    selectedPhotoData = e.target.result;
+    document.getElementById('photoPreviewArea').innerHTML =
+      `<img src="${selectedPhotoData}" alt="preview">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function savePhoto() {
+  if (!selectedPhotoData) { showToast('写真を選択してください', true); return; }
+  const siteId = document.getElementById('photoSite').value;
+  const date = document.getElementById('photoDate').value;
+  if (!siteId || !date) { showToast('物件と日付を選択してください', true); return; }
+  const photo = {
+    id: Date.now().toString(),
+    siteId,
+    date,
+    title: document.getElementById('photoTitle').value.trim(),
+    memo: document.getElementById('photoMemo').value.trim(),
+    dataUrl: selectedPhotoData,
+    createdAt: new Date().toISOString()
+  };
+  await dbPut('photos', photo);
+  photos = await dbGetAll('photos');
+  closeModal('modalPhoto');
+  renderHome();
+  renderPhotosPage();
+  showToast('写真を保存しました📸');
+}
+
+// ========== DELETE ==========
+async function deleteEvent(id) {
+  if (!confirm('この工程を削除しますか？')) return;
+  await dbDelete('events', id);
+  events = await dbGetAll('events');
+  renderCalendar();
+  renderHome();
+  showToast('削除しました');
+}
+
+async function deleteCurrentPhoto() {
+  if (!viewerPhotoId) return;
+  if (!confirm('この写真を削除しますか？')) return;
+  await dbDelete('photos', viewerPhotoId);
+  photos = await dbGetAll('photos');
+  closePhotoViewer();
+  renderHome();
+  renderPhotosPage();
+  showToast('写真を削除しました');
+}
+
+// ========== PHOTO VIEWER ==========
+function openPhotoViewer(id) {
+  const photo = photos.find(p => p.id === id);
+  if (!photo) return;
+  const site = sites.find(s => s.id === photo.siteId);
+  viewerPhotoId = id;
+  document.getElementById('viewerImg').src = photo.dataUrl;
+  document.getElementById('viewerTitle').textContent = photo.title || '（タイトルなし）';
+  document.getElementById('viewerSub').textContent =
+    `${site ? site.name : ''} | ${formatDate(photo.date)}${photo.memo ? ' | ' + photo.memo : ''}`;
+  document.getElementById('photoViewer').classList.add('open');
+}
+
+function closePhotoViewer() {
+  document.getElementById('photoViewer').classList.remove('open');
+  viewerPhotoId = null;
+}
+
+// ========== EXPORT ==========
+async function exportAllData() {
+  showToast('エクスポート準備中...');
+  const zip = new JSZip();
+
+  // データJSON
+  zip.file('sites.json', JSON.stringify(sites, null, 2));
+  zip.file('events.json', JSON.stringify(events, null, 2));
+  const photosMeta = photos.map(p => ({ ...p, dataUrl: undefined }));
+  zip.file('photos_meta.json', JSON.stringify(photosMeta, null, 2));
+
+  // 写真
+  const photoFolder = zip.folder('photos');
+  photos.forEach(p => {
+    const base64 = p.dataUrl.split(',')[1];
+    const ext = p.dataUrl.split(';')[0].split('/')[1] || 'jpg';
+    const site = sites.find(s => s.id === p.siteId);
+    const fname = `${p.date}_${(site ? site.name : 'unknown').replace(/[^\w]/g,'_')}_${p.id}.${ext}`;
+    photoFolder.file(fname, base64, { base64: true });
+  });
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `genba_export_${toDateStr(new Date())}.zip`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('エクスポート完了✅');
+}
+
+async function exportPhotosOnly() {
+  if (photos.length === 0) { showToast('写真がありません', true); return; }
+  showToast('写真をエクスポート中...');
+  const zip = new JSZip();
+  photos.forEach(p => {
+    const base64 = p.dataUrl.split(',')[1];
+    const ext = p.dataUrl.split(';')[0].split('/')[1] || 'jpg';
+    const site = sites.find(s => s.id === p.siteId);
+    const fname = `${p.date}_${(site ? site.name : 'unknown').replace(/[^\w]/g,'_')}_${p.id}.${ext}`;
+    zip.file(fname, base64, { base64: true });
+  });
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `photos_${toDateStr(new Date())}.zip`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('写真エクスポート完了📸');
+}
+
+async function clearAllData() {
+  if (!confirm('全データを削除します。この操作は取り消せません。\n先にエクスポートしてください。')) return;
+  if (!confirm('本当によろしいですか？')) return;
+  await dbClear('sites');
+  await dbClear('events');
+  await dbClear('photos');
+  sites = []; events = []; photos = [];
+  renderHome();
+  renderCalendar();
+  renderSites();
+  renderPhotosPage();
+  showToast('全データを削除しました');
+}
+
+// ========== TOAST ==========
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? 'var(--danger)' : 'var(--success)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ========== START ==========
+init();
+</script>
+</body>
+</html>
